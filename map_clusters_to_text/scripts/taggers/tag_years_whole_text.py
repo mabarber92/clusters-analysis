@@ -235,10 +235,12 @@ def tag_whole_text_dir(in_dir, out_dir, path_list = False):
         sana = "سنة"
         text = re.sub(r"(?<=%s)(\s\S*){6}" % (sana), date_sub, text)
         
-        name = text_path.split("\\")[-1]
-        out_name = name + ".dates_tagged-new"
+        name = text_path.split("/")[-1]
+        out_name = name + ".dates_tagged"
+        print(out_dir)
         print(out_name)
-        text_out_path = os.path.abspath(os.path.join(out_dir, out_name))
+        text_out_path = os.path.join(out_dir, out_name)
+        print(text_out_path)
         
         with open(text_out_path, "w", encoding = "utf-8") as f:
             f.write(text)

@@ -148,9 +148,9 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
 
 
 if __name__ == "__main__":
-    corpus_base_path = "D:/OpenITI Corpus/corpus_2022_2_7/"
-    meta_path = "D:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
-    cluster_path = "D:/Corpus Stats/2023/v7-clusters/out.json"
+    corpus_base_path = "E:/OpenITI Corpus/corpus_2022_2_7/"
+    meta_path = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
+    cluster_path = "E:/Corpus Stats/2023/v7-clusters/out.json"
     date_filter_range = [454, 467]
     in_books = ["0845Maqrizi.ItticazHunafa"]
     out_dir = "../data_out/"

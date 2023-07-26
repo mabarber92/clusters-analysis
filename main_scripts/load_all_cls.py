@@ -21,7 +21,7 @@ def load_all_cls(path, meta_path, min_date=1, max_date = 900, cluster_cap = 500,
     print("Loading all clusters below: " + str(cluster_cap))
     print(path)
     for root, dirs, files in os.walk(path, topdown=False):
-        for name in tqdm(files[:2]):
+        for name in tqdm(files):
             if name.split(".")[-1] == "parquet":
                 file_type = "parquet"
             if name.split(".")[-1] == "json":
@@ -42,10 +42,8 @@ def load_all_cls(path, meta_path, min_date=1, max_date = 900, cluster_cap = 500,
 
                 data["id"] = data["series"].str.split("-").str[0]
                 data = pd.merge(data, meta_df, how = "inner", on ="id") 
-                # Applying the date filter to output
-                
+                # Applying the date filter to output                
                 data = data[data["date"].le(max_date)]
-                
                 data = data[data["date"].ge(min_date)]
                 
                 if drop_dates:

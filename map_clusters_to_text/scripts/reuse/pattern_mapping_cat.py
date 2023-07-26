@@ -43,8 +43,8 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
         if char_counts:            
             sec_length = len(split)            
         
-        word_char_counter = word_char_counter + sec_length        
         temp["st_pos"]= word_char_counter
+        word_char_counter = word_char_counter + sec_length       
         temp["mid_pos"] = word_char_counter + (sec_length/2)
         
         ### Iterate through date-ranges dict

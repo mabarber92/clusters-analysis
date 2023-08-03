@@ -167,6 +167,7 @@ def tag_clusters(tagged_texts, out_dest, cls_df, eval_cols=None, no_cl_csv = "no
                         print("Output file already exists... skipping...")
                         continue
                 
+                
                 data_subset = all_cls[all_cls["id"] == text_id]
                 clusters_for_text_df = pd.DataFrame()
                 

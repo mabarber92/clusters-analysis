@@ -84,8 +84,8 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
 
         
         temp["st_pos"]= word_char_counter
-        word_char_counter = word_char_counter + sec_length       
         temp["mid_pos"] = word_char_counter + (sec_length/2)
+        word_char_counter = word_char_counter + sec_length  
         
         ### Iterate through date-ranges dict
         for item in date_cats:

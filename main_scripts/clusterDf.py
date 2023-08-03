@@ -1,16 +1,17 @@
 from main_scripts.load_all_cls import load_all_cls
 import pandas as pd
 import re
+import os
 
 class clusterDf():
-    def __init__ (self, cluster_path, meta_path, min_date=0, max_date = 1500, cluster_cap = None, drop_strings = True, columns = ["cluster", "size", "seq", "series", "begin", "end"]):
+    def __init__ (self, cluster_path, meta_path, min_date=0, max_date = 1500, cluster_cap = 500, drop_strings = True, columns = ["cluster", "size", "seq", "series", "begin", "end"]):
         self.cluster_df = load_all_cls(cluster_path, meta_path, drop_strings=drop_strings, columns = columns, drop_dates=False, max_date = max_date, min_date=min_date, cluster_cap = cluster_cap)
     
     def count_books(self):
-        return len(self.cluster_df[cluster_df["series"]].drop_duplicates())
+        return len(self.cluster_df[self.cluster_df["series"]].drop_duplicates())
 
     def count_clusters(self):
-        return len(self.cluster_df[cluster_df["cluster"]].drop_duplicates())
+        return len(self.cluster_df[self.cluster_df["cluster"]].drop_duplicates())
     
     def fetch_max_cluster(self):
         return self.cluster_df["size"].max()
@@ -74,14 +75,14 @@ class clusterDf():
     def filter_by_book_list(self, book_list):
         self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
 
-    def to_minified_csv(self, out_path, columns = ["cluster", "id", "seq", "begin", "end"]):
+    def to_minified_csv(self, out_path, columns = ["cluster", "id", "seq", "begin", "end", "size"]):
         minified_csv = self.cluster_df[columns]
         minified_csv.to_csv(out_path)
 
 if __name__ == "__main__":
-    
-    clusters = "E:/Corpus Stats/2023/v7-clusters/out.json"
-    meta = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7_merged.csv"
-    out_csv = "E:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
+    print(os.getcwd())
+    clusters = "D:/Corpus Stats/2023/v7-clusters/out.json"
+    meta = "D:/Corpus Stats/2023/OpenITI_metadata_2022-2-7_merged.csv"
+    out_csv = "D:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
     cluster_df_obj = clusterDf(clusters, meta, max_date = 1000, cluster_cap=500)
     cluster_df_obj.to_minified_csv(out_csv)

@@ -74,13 +74,14 @@ class clusterDf():
     def filter_by_book_list(self, book_list):
         self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
 
+    def to_minified_csv(self, out_path, columns = ["cluster", "id", "seq", "begin", "end"]):
+        minified_csv = self.cluster_df[columns]
+        minified_csv.to_csv(out_path)
+
 if __name__ == "__main__":
     
-    clusters = "C:/Users/mathe/Documents/Kitab project/passim/clusters-2022/"
-    meta = "E:/Corpus Stats/2021/OpenITI_metadata_2021-2-5_merged_wNoor.csv"
-    cluster_df_obj = clusterDf(clusters, meta)
-    print(cluster_df_obj.count_books())
-    print(cluster_df_obj.count_clusters())
-    print(cluster_df_obj.fetch_max_cluster())
-
-    # stats = cluster_df_obj.fetch_top_reusers(uri="0845Maqrizi.Mawaciz", exclude_self_reuse=True, dir="anachron", csv_out = "0845Maqrizi.Mawaciz-reused-texts.csv")
+    clusters = "E:/Corpus Stats/2023/v7-clusters/out.json"
+    meta = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7_merged.csv"
+    out_csv = "E:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
+    cluster_df_obj = clusterDf(clusters, meta, max_date = 1000, cluster_cap=500)
+    cluster_df_obj.to_minified_csv(out_csv)

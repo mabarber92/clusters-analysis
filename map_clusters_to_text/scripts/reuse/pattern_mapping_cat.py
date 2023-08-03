@@ -11,17 +11,47 @@ import os
 import pathlib
 from statistics import median, mode
 
-def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_summary = None, tops = None, w_counts = False, char_counts = False, map_terms = None):
+def merge_split_with_splitter(splits, splitter_regex, before=True):
+    """Loop through a set of splits and merge each split with its deliniator - before means that the splitter should be attached before the corresponding split, if set to false the splitter will
+    be attached to the text in the split that precedes it"""
+    new_splits = []
+    total_indices = len(splits) - 1
+    print(splitter_regex)
+    for idx, split in enumerate(splits):        
+        if re.match(splitter_regex, split):
+            print("start")
+            print(split)
+            print("end")
+            if before:
+                if idx == total_indices:
+                    new_text = split
+                else:                     
+                    new_text = "".join([splits[idx], splits[idx+1]])
+            else:
+                new_text = "".join([splits[idx-1], splits[idx]]) 
+            new_splits.append(new_text)
+    return new_splits
+
+def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_summary = None, tops = None, w_counts = False, char_counts = False, map_terms = None, add_section_title = False):
     """ Takes date-range dictionary of {'beg': 0, 'end': 358, 'label': 'pre-Fatimid}
     date_summary can use one of two approaches to summarise one date from a potential set of 
      dates in a given section 'first' will take the first date found in the section - good for chronicles, 'median' - will take the median date - 'mode' the most
       common date in the section - if no date is found in the section the value will be 0. If no date summary is desired - set to none """
     out = []
     
+     # Split on the specified deliniator (header or ms) and then loop through the split sections to re-attach the splitter - this prevents a drift in character offset
+
     if on == "head":
-        splits = re.split(r"###\s", text)
+        regex = r"(###\s)"
+        splits = re.split(regex, text)             
+        splits = merge_split_with_splitter(splits, regex)
     if on == "ms":
-        splits = re.split(r"ms\d+", text)
+        regex = r"(ms\d+)"
+        splits = re.split(regex, text)
+        splits = merge_split_with_splitter(splits, regex, before=False)
+
+    
+   
 
     if map_terms is not None:
         terms_copy = map_terms[:]
@@ -33,7 +63,8 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
         
     word_char_counter = 0
  
- 
+    with open("output-check.txt", "w", encoding='utf-8') as f:
+        f.write(str(splits))
     
     for idx, split in enumerate(tqdm(splits)):
         temp = {"section" : idx + 1}
@@ -41,7 +72,16 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
         if w_counts:            
             sec_length = len(re.split(r"\s", split))           
         if char_counts:            
-            sec_length = len(split)            
+            sec_length = len(split)
+
+        if add_section_title:
+            section_titles = re.findall(r"###\s\|+[^\n\r]+", split)
+            if len(section_titles) > 0:
+                section_title = section_titles[0]
+            else:
+                section_title = "No title found"
+            temp["section_title"] = section_title
+
         
         temp["st_pos"]= word_char_counter
         word_char_counter = word_char_counter + sec_length       
@@ -94,7 +134,7 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
     
     return out_df
 
-def pattern_map_corpus(in_dir, out_dir, date_cats = [], add_terms = None, on = "head", date_summary = "first", tops = None, w_counts = False, char_counts = False, map_terms = None):
+def pattern_map_corpus(in_dir, out_dir, date_cats = [], add_terms = None, on = "head", date_summary = "first", tops = None, w_counts = False, char_counts = False, map_terms = None, add_section_title = False):
     for root, dirs, files in os.walk(in_dir, topdown=False):
         for name in files:
             text_path = os.path.join(root, name)
@@ -102,13 +142,11 @@ def pattern_map_corpus(in_dir, out_dir, date_cats = [], add_terms = None, on = "
             with open(text_path, encoding='utf-8-sig') as f:
                 text = f.read()
             
-            mapDf = pattern_map_dates(text, date_cats = date_cats, add_terms = add_terms, on = on, date_summary = date_summary, tops = tops, w_counts = w_counts, char_counts = char_counts, map_terms = map_terms)
+            mapDf = pattern_map_dates(text, date_cats = date_cats, add_terms = add_terms, on = on, date_summary = date_summary, tops = tops, w_counts = w_counts, char_counts = char_counts, map_terms = map_terms, add_section_title = add_section_title)
             mapDf.to_csv(out_path, encoding='utf-8-sig')
             
 
 
-# in_path = "C:/Users/mathe/Documents/Github-repos/fitna-study/whole text tagger/outputs/dates_tagged_new"
-# out_path = "C:/Users/mathe/Documents/Github-repos/fitna-study/dates_analysis/mappings_mamluk_split"
 
 
 # cats = [{'beg': 1, 'end': 100, 'label': 'first-century'}, 
@@ -118,28 +156,11 @@ def pattern_map_corpus(in_dir, out_dir, date_cats = [], add_terms = None, on = "
 #         {'beg': 649, 'end': 783, 'label': 'bahri-mamluk'},
 #         {'beg': 784, 'end': 900, 'label': 'circassian-mamluk'}]
 
-
-# for root, dirs, files in os.walk(in_path, topdown=False):
-#     for name in tqdm(files):
-#         print(name)            
-#         text_path = os.path.abspath(os.path.join(root, name))
-#         section_path = out_path + "/sections/"
-#         ms_path = out_path + "/ms/"
-#         if not os.path.exists(section_path):
-#             pathlib.Path(section_path).mkdir(parents=True, exist_ok=True)
-#         if not os.path.exists(ms_path):
-#             pathlib.Path(ms_path).mkdir(parents=True, exist_ok=True)
-#         section_path = out_path + "/sections/" + name + ".s_mapped.csv"
-#         ms_path = out_path + "/ms/" + name + ".ms_mapped.csv"
-        
-#         with open(text_path, encoding = "utf-8") as f:
-#             text = f.read()
-#             f.close()
-            
-#         section_mappings = pattern_map_cat(text, date_cats = cats, tops = False, w_counts=True, char_counts = False)
-#         section_mappings.to_csv(section_path)
-        
-#         ms_mappings = pattern_map_cat(text, date_cats = cats, on="ms", tops = False, w_counts=True, char_counts = False)
-#         ms_mappings.to_csv(ms_path)
-        
+if __name__ == "__main__":
+    text_path = "D:/corpus_2022_1_6/data/0845Maqrizi/0845Maqrizi.Rasail/0845Maqrizi.Rasail.Shamela0010710-ara1.completed"
+    out = "text_section_df.csv"
+    with open(text_path, encoding="utf-8") as f:
+        text = f.read()
+    df = pattern_map_dates(text, char_counts = True, add_section_title=True)
+    df.to_csv(out, encoding='utf-8-sig')
     

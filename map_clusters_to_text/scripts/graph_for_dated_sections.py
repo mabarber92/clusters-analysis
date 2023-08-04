@@ -12,6 +12,7 @@ from reuse.multi_reuse_map import multi_reuse_map_corpus
 sys.path.append(os.path.abspath('../..'))
 from main_scripts.clusterDf import clusterDf
 from main_scripts.cls_text_tag import tag_clusters
+from create_md_uris.update_cl_vers_ids import update_cls_vers_ids
 
 def return_corpus_paths_for_books(meta_path, openiti_corpus_base, book_list):
     meta_df = pd.read_csv(meta_path, sep="\t")
@@ -19,8 +20,8 @@ def return_corpus_paths_for_books(meta_path, openiti_corpus_base, book_list):
     path_list = meta_df[meta_df["book"].isin(book_list)]["rel_path"].to_list()
     return path_list
 
-def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_dir, pairs_focus=None, max_reuse_date=None, min_reuse_date=0, 
-                             cluster_cap = 100, date_section_range = [], date_cats=[], date_summary='first', tops=None):
+def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_dir, existing_cluster_tagged = [], pairs_focus=None, max_reuse_date=None, min_reuse_date=0, 
+                             cluster_cap = 100, date_section_range = [], date_cats=[], date_summary='first', tops=None, new_ids_paths =[]):
     """in_books gives a list of book_uris to be used as the main texts for the graphs - a graph and intermediary files 
     will be produced for each
     pairs_focus gives a list of book_uris - only these uris will be used for the analysis - clusters that
@@ -33,7 +34,26 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
     colour given in the graph for the tag - TO DO - Add an example of an input dictionary for this field
     TO DO - UNIFY HOW WE'RE DEALING WITH DYNASTIC MAPPINGS AND COLOURS -
       FOR THIS EACH SECTION NEEDS A DYNASTIC MAPPING -
-    WILL NEED TO ADD ANOTHER FUNCTION"""
+    WILL NEED TO ADD ANOTHER FUNCTION
+    new_ids_paths is a list of dictionaries giving fields "new_ids" "new_ids_meta", where both supply absolute
+     paths to the csv files for the changes. Example:
+     [{"new_ids": "/0845MaqriziRasaili.cluster-section-ids.csv",
+        "new_ids_meta": "//0845MaqriziRasaili.section-ids-meta.csv"
+        }] 
+    If it is given then the version ids for the clusters will be renamed using the data supplied. If it is left empty
+    then the clusters will be left as normal
+
+    For tops use a list of dictionaries like this:
+        topics = [{"id": "@PREIS@", "colour": "brown", "label" : "Pre-Islamic"},
+          {"id": "@EARIS@", "colour": "yellow", "label" : "Early Islamic"},
+          {"id": "@IKH@", "colour": "orange", "label" : "Ikhshidid"},
+          {"id": "@FAT@", "colour": "green", "label" : "Fatimid"},
+          {"id": "@AYY@", "colour": "red", "label" : "Ayyubid"},
+          {"id": "@MAM@", "colour": "darkblue", "label" : "Mamluk"},
+          {"id": "None", "colour": "black", "label" : "No Dynasty"}
+          ]
+
+    """
     
     # If date_section_range is set then date_summary must be used - use a default of 'first'
     if len(date_section_range) == 2 and date_summary is None:
@@ -43,12 +63,17 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
 
-    # Load metadata - get the paths for the main input texts
-    in_paths = return_corpus_paths_for_books(meta_path, corpus_base_path, in_books)
-    print(in_paths)
-    if len(in_paths) == 0:
-        print("Supplied book URIs not found: {} \n try again".format(in_books))
-        exit()
+    # Load metadata - get the paths for the main input texts - if existing_cluster_tagged paths have not been supplied
+    if len(existing_cluster_tagged) > 0:
+        in_paths = existing_cluster_tagged[:]
+        use_cluster_tagger = False
+    else:
+        in_paths = return_corpus_paths_for_books(meta_path, corpus_base_path, in_books)
+        print(in_paths)
+        if len(in_paths) == 0:
+            print("Supplied book URIs not found: {} \n try again".format(in_books))
+            exit()
+        use_cluster_tagger = True
     
     print("Loading clusters")
     # Load in clusters as a clusterDf Obj
@@ -59,7 +84,10 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
         pairs_focus = pairs_focus.extend(in_books)
         clsObj.filter_by_book_list(pairs_focus)
     
-    
+    cluster_df = clsObj.cluster_df
+
+    if len(new_ids_paths) > 0:
+        cluster_df = update_cls_vers_ids(cluster_df, new_ids_paths)
 
     maps_out_dir = os.path.join(out_dir, "reuse_maps")
     if not os.path.exists(maps_out_dir):
@@ -84,21 +112,33 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
 
         # Then tag clusters
         print("Tagging clusters")
-        tag_clusters(input_dir, tagged_cluster_dir, clsObj.cluster_df, text_dir_type = 'folder', overwrite = True, write_only_tags=True)
+        if use_cluster_tagger:
+            tag_clusters(input_dir, tagged_cluster_dir, cluster_df, text_dir_type = 'folder', overwrite = True, write_only_tags=True)
         
     else:
         print("Skipping dates tagging..")
         print("Tagging clusters")
-        tag_clusters(in_paths, tagged_cluster_dir, clsObj.cluster_df, text_dir_type = 'file_list', overwrite = True, write_only_tags=True)
+        add_dates = False
+        if use_cluster_tagger:
+            tag_clusters(in_paths, tagged_cluster_dir, cluster_df, text_dir_type = 'file_list', overwrite = True, write_only_tags=True)
     
     
     
 
     
+    if tops is not None:
+        topic_tags = []
+        for top_dict in tops:
+            if top_dict["id"] != "None":
+                topic_tags.append(top_dict["id"])
+        print(topic_tags)
     
+    else:
+        topic_tags = None
+
     
     print("Creating reuse map")
-    multi_reuse_map_corpus(clsObj.cluster_df, tagged_cluster_dir, maps_out_dir, section_map = True, date_summary=date_summary, date_cats = date_cats, tops=tops)
+    multi_reuse_map_corpus(cluster_df, tagged_cluster_dir, maps_out_dir, section_map = True, date_summary=date_summary, date_cats = date_cats, tops=topic_tags)
 
     #If we have a date filter - make a new folder containing filtered map - change the input dir
     print(date_section_range)
@@ -148,15 +188,32 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
 
 
 if __name__ == "__main__":
-    corpus_base_path = "E:/OpenITI Corpus/corpus_2022_2_7/"
-    meta_path = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
-    cluster_path = "E:/Corpus Stats/2023/v7-clusters/out.json"
-    date_filter_range = [454, 467]
-    in_books = ["0845Maqrizi.ItticazHunafa"]
-    out_dir = "../data_out/"
+    corpus_base_path = "D:/OpenITI Corpus/corpus_2022_2_7/"
+    meta_path = "D:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
+    cluster_path = "D:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
+    # date_filter_range = [454, 467]
+    in_books = ["0845Maqrizi.IghathaUmma"]
+    out_dir = "../data_out_igatha_corrected/"
+    new_ids_paths = [
+        {"new_ids" : "C:/Users/mathe/Documents/Github-repos/clusters-analysis/create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clcluster-section-ids.csv",
+         "new_ids_meta" : "C:/Users/mathe/Documents/Github-repos/clusters-analysis/create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clsection-ids-meta.csv"
+         }
+    ]
+    existing_tagged_cluster = ["C:/Users/mathe/Documents/Github-repos/clusters-analysis/map_clusters_to_text/data_out_igatha_corrected/clusters_tagged/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.dyn-tagged"]
+
+    topics = [{"id": "@PREIS@", "colour": "brown", "label" : "Pre-Islamic"},
+          {"id": "@EARIS@", "colour": "yellow", "label" : "Early Islamic"},
+          {"id": "@IKH@", "colour": "orange", "label" : "Ikhshidid"},
+          {"id": "@FAT@", "colour": "green", "label" : "Fatimid"},
+          {"id": "@AYY@", "colour": "red", "label" : "Ayyubid"},
+          {"id": "@MAM@", "colour": "darkblue", "label" : "Mamluk"},
+          {"id": "None", "colour": "black", "label" : "No Dynasty"}
+          ]
+
 
     graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
-                             cluster_cap = 20, date_section_range = date_filter_range, date_summary='first')
+                             cluster_cap = 20, date_summary=None, new_ids_paths = new_ids_paths, 
+                             existing_cluster_tagged=existing_tagged_cluster, tops=topics)
 
 
 

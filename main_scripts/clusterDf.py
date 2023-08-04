@@ -4,7 +4,7 @@ import re
 import os
 
 class clusterDf():
-    def __init__ (self, cluster_path, meta_path, min_date=0, max_date = 1500, cluster_cap = 500, drop_strings = True, columns = ["cluster", "size", "seq", "series", "begin", "end"]):
+    def __init__ (self, cluster_path, meta_path, min_date=0, max_date = 1500, cluster_cap = 500, drop_strings = True, columns = ["uid", "gid", "cluster", "size", "seq", "series", "text", "begin", "end"]):
         self.cluster_df = load_all_cls(cluster_path, meta_path, drop_strings=drop_strings, columns = columns, drop_dates=False, max_date = max_date, min_date=min_date, cluster_cap = cluster_cap)
     
     def count_books(self):

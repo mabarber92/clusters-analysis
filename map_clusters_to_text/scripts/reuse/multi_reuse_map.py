@@ -63,21 +63,23 @@ def multi_reuse_map(all_cls, tagged_text_path, dir_out, reused_texts = [], secti
     # Loop through clusters and create the df
     reuse_map_out = []
     for cluster in cluster_offsets.keys():
-        
-        cluster_data = filtered_clusters[filtered_clusters["cluster"] == int(cluster)][["book", "seq", "id"]].values.tolist()
-        cluster_start = cluster_offsets[cluster]["ch_start_tar"]
-        cluster_end = cluster_offsets[cluster]["ch_end_tar"]
-
-        for book in cluster_data:
+        # Only try to create a mapping row if both a start and end was found - this accounts for input docs where clusters might be cut (important for cases where we map from page-corrected files)
+        if "ch_start_tar" in cluster_offsets[cluster].keys() and "ch_end_tar" in cluster_offsets[cluster].keys():
             
-            reuse_map_out.append({"Text": book[0], "id": book[2], "ch_start_tar":cluster_start, "ch_end_tar":cluster_end, "source_book_ms": book[1], "book_count": 1, "cluster": cluster})
-        if reused_texts != [] and other_map:
-            cluster_data = remaining_clusters[remaining_clusters["cluster"] == int(cluster)][["book", "seq"]].values.tolist()
+            cluster_data = filtered_clusters[filtered_clusters["cluster"] == int(cluster)][["book", "seq", "id"]].values.tolist()
             cluster_start = cluster_offsets[cluster]["ch_start_tar"]
             cluster_end = cluster_offsets[cluster]["ch_end_tar"]
-            
-            if len(cluster_data) > 0:            
-                reuse_map_out.append({"Text": "Other", "id": "n/a", "ch_start_tar":cluster_start, "ch_end_tar":cluster_end, "source_book_ms": 0, "book_count": len(cluster_data), "cluster": cluster})
+
+            for book in cluster_data:
+                
+                reuse_map_out.append({"Text": book[0], "id": book[2], "ch_start_tar":cluster_start, "ch_end_tar":cluster_end, "source_book_ms": book[1], "book_count": 1, "cluster": cluster})
+            if reused_texts != [] and other_map:
+                cluster_data = remaining_clusters[remaining_clusters["cluster"] == int(cluster)][["book", "seq"]].values.tolist()
+                cluster_start = cluster_offsets[cluster]["ch_start_tar"]
+                cluster_end = cluster_offsets[cluster]["ch_end_tar"]
+                
+                if len(cluster_data) > 0:            
+                    reuse_map_out.append({"Text": "Other", "id": "n/a", "ch_start_tar":cluster_start, "ch_end_tar":cluster_end, "source_book_ms": 0, "book_count": len(cluster_data), "cluster": cluster})
     
     reuse_out = pd.DataFrame(reuse_map_out)
     

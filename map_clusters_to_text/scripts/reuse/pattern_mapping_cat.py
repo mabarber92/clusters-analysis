@@ -19,9 +19,6 @@ def merge_split_with_splitter(splits, splitter_regex, before=True):
     print(splitter_regex)
     for idx, split in enumerate(splits):        
         if re.match(splitter_regex, split):
-            print("start")
-            print(split)
-            print("end")
             if before:
                 if idx == total_indices:
                     new_text = split
@@ -63,8 +60,6 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
         
     word_char_counter = 0
  
-    with open("output-check.txt", "w", encoding='utf-8') as f:
-        f.write(str(splits))
     
     for idx, split in enumerate(tqdm(splits)):
         temp = {"section" : idx + 1}
@@ -116,12 +111,16 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
                 count = len(re.findall(term, split))
                 temp[term] = count
         
-        if tops is not None:            
-            topic = re.findall(tops, split)
-            if len(topic) >= 1:
-                temp["Topic_id"] = topic[0]
-            else:
-                temp["Topic_id"] = "None"
+        if tops is not None:
+            for top in tops:            
+                topic = re.findall(top, split)
+                print(top)
+                print(topic)
+                if len(topic) >= 1:
+                    temp["Topic_id"] = top
+                    break
+                else:
+                    temp["Topic_id"] = "None"
         
         if map_terms is not None:
             for term in terms_copy:            

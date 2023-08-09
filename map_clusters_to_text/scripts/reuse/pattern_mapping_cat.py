@@ -60,7 +60,24 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
         
     word_char_counter = 0
  
-    
+    # Add a row for the start of the text
+    temp = {"section": 0, "st_pos": 0, "mid_pos":0}
+    for item in date_cats:
+        temp[item["label"]] = 0
+    if add_section_title:
+        temp["section_title"] = "text_start"
+    if date_summary is not None:
+        temp["date"] = 0
+    if add_terms is not None:
+        for term in add_terms:
+            temp[term] = 0
+    if tops is not None:
+        temp["Topic_id"] = "None"
+    if map_terms is not None:
+        for term in terms_copy:
+            temp[term] = 0
+    out.append(temp)
+
     for idx, split in enumerate(tqdm(splits)):
         temp = {"section" : idx + 1}
         
@@ -113,9 +130,7 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
         
         if tops is not None:
             for top in tops:            
-                topic = re.findall(top, split)
-                print(top)
-                print(topic)
+                topic = re.findall(top, split)                
                 if len(topic) >= 1:
                     temp["Topic_id"] = top
                     break
@@ -128,6 +143,29 @@ def pattern_map_dates(text, date_cats = [], add_terms = None, on = "head", date_
                 temp[term] = count
         
         out.append(temp)
+     
+    # Add a row for the end of the text
+    if w_counts:
+        text_length = len(re.split(r"\s", text))
+    if char_counts:
+        text_length = len(text)
+    temp = {"section": len(splits) + 1, "st_pos": text_length, "mid_pos":text_length}
+    for item in date_cats:
+        temp[item["label"]] = 0
+    if add_section_title:
+        temp["section_title"] = "text_start"
+    if date_summary is not None:
+        temp["date"] = 0
+    if add_terms is not None:
+        for term in add_terms:
+            temp[term] = 0
+    if tops is not None:
+        temp["Topic_id"] = "None"
+    if map_terms is not None:
+        for term in terms_copy:
+            temp[term] = 0
+    out.append(temp)
+
    
     out_df = pd.DataFrame(out)
     

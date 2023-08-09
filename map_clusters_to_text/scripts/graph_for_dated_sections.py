@@ -20,8 +20,8 @@ def return_corpus_paths_for_books(meta_path, openiti_corpus_base, book_list):
     path_list = meta_df[meta_df["book"].isin(book_list)]["rel_path"].to_list()
     return path_list
 
-def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_dir, existing_cluster_tagged = [], pairs_focus=None, max_reuse_date=None, min_reuse_date=0, 
-                             cluster_cap = 100, date_section_range = [], date_cats=[], date_summary='first', tops=None, new_ids_paths =[]):
+def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_dir, existing_cluster_tagged = [], pairs_focus=None, author_focus=None, max_reuse_date=None, min_reuse_date=0, 
+                             cluster_cap = 100, date_section_range = [], date_cats=[], date_summary='first', tops=None, new_ids_paths =[], label_conv=None, exclude_book_uri = None):
     """in_books gives a list of book_uris to be used as the main texts for the graphs - a graph and intermediary files 
     will be produced for each
     pairs_focus gives a list of book_uris - only these uris will be used for the analysis - clusters that
@@ -52,7 +52,12 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
           {"id": "@MAM@", "colour": "darkblue", "label" : "Mamluk"},
           {"id": "None", "colour": "black", "label" : "No Dynasty"}
           ]
+    author_focus takes a list of author URIs (e.g. [0845Maqrizi]) and filters the clusters using that list graphs will only
+    contain data related to that author
 
+    label_conv gives a dictionary of book uris and the corresponding labels to be used
+
+    exclude_book_uri gives a list of book uris to be excluded from the graph
     """
     
     # If date_section_range is set then date_summary must be used - use a default of 'first'
@@ -75,6 +80,8 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
             exit()
         use_cluster_tagger = True
     
+
+    
     print("Loading clusters")
     # Load in clusters as a clusterDf Obj
     clsObj = clusterDf(cluster_dir, meta_path, min_date=min_reuse_date, max_date=max_reuse_date, cluster_cap=cluster_cap)
@@ -84,6 +91,18 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
         pairs_focus = pairs_focus.extend(in_books)
         clsObj.filter_by_book_list(pairs_focus)
     
+    # If author_focus is set - add the input texts to the author focus list and then filter the clusters
+    if author_focus is not None:
+        for book in in_books:
+            author = book.split(".")[0]
+            if author not in author_focus:
+                author_focus.append(author)
+        clsObj.filter_by_author_list(author_focus)
+    
+    # If exclude_book_uri is not none - filter so that this book uri not in the cluster data
+    if exclude_book_uri is not None:
+        clsObj.filter_by_book_list(exclude_book_uri, exclude_listed_books=True)
+
     cluster_df = clsObj.cluster_df
 
     if len(new_ids_paths) > 0:
@@ -179,41 +198,60 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
         for name in files:
             input_parts = name.split("-")
             text_name = ".".join(name.split(".")[:2])
+            if label_conv is not None:
+                if text_name in label_conv.keys():
+                    text_name = label_conv[text_name]
             if input_parts[-1] == 'reuse.csv':
                 reuse_map = os.path.join(root, name)
                 section_map = os.path.join(root, "-".join(input_parts[:-1]) + "-section.csv")
-                out_path = os.path.join(graph_dir, text_name + "reuse-graph.png")
-                plot_reuse(reuse_map, out_path, text_name, section_map = section_map, add_dates = add_dates, top_colours=tops)
+                out_path = os.path.join(graph_dir, text_name + "-reuse-graph.png")
+                plot_reuse(reuse_map, out_path, text_name, section_map = section_map, add_dates = add_dates, top_colours=tops, label_conv=label_conv)
 
 
 
 if __name__ == "__main__":
-    corpus_base_path = "D:/OpenITI Corpus/corpus_2022_2_7/"
-    meta_path = "D:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
-    cluster_path = "D:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
+    corpus_base_path = "E:/OpenITI Corpus/corpus_2022_2_7/"
+    meta_path = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
+    cluster_path = "E:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
     # date_filter_range = [454, 467]
     in_books = ["0845Maqrizi.IghathaUmma"]
+    author_focus = ["0845Maqrizi"]
     out_dir = "../data_out_igatha_corrected/"
     new_ids_paths = [
-        {"new_ids" : "C:/Users/mathe/Documents/Github-repos/clusters-analysis/create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clcluster-section-ids.csv",
-         "new_ids_meta" : "C:/Users/mathe/Documents/Github-repos/clusters-analysis/create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clsection-ids-meta.csv"
+        {"new_ids" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clcluster-section-ids.csv",
+         "new_ids_meta" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clsection-ids-meta.csv"
          }
     ]
-    existing_tagged_cluster = ["C:/Users/mathe/Documents/Github-repos/clusters-analysis/map_clusters_to_text/data_out_igatha_corrected/clusters_tagged/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.dyn-tagged"]
+    existing_tagged_cluster = ["../data_out_igatha_corrected/clusters_tagged/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.dyn-tagged"]
 
     topics = [{"id": "@PREIS@", "colour": "brown", "label" : "Pre-Islamic"},
           {"id": "@EARIS@", "colour": "yellow", "label" : "Early Islamic"},
-          {"id": "@IKH@", "colour": "orange", "label" : "Ikhshidid"},
-          {"id": "@FAT@", "colour": "green", "label" : "Fatimid"},
-          {"id": "@AYY@", "colour": "red", "label" : "Ayyubid"},
-          {"id": "@MAM@", "colour": "darkblue", "label" : "Mamluk"},
+          {"id": "@IKH@", "colour": "orange", "label" : "Iḫšīdid"},
+          {"id": "@FAT@", "colour": "green", "label" : "Fāṭimid"},
+          {"id": "@AYY@", "colour": "red", "label" : "Ayyūbid"},
+          {"id": "@MAM@", "colour": "darkblue", "label" : "Mamlūk"},
           {"id": "None", "colour": "black", "label" : "No Dynasty"}
           ]
+
+    label_conv ={"0845Maqrizi.ShudhurCuqud" : "Shudhūr al-ʿUqūd", 
+                "0845Maqrizi.NuqudQadima": "al-Nuqūd al-Qadīma",
+                "0845Maqrizi.Muqaffa": "al-Muqaffā al-Kabīr",
+                "0845Maqrizi.Mawaciz": "al-Ḫiṭaṭ",
+                "0845Maqrizi.ItticazHunafa": "Ittiʿāẓ al-Ḥunafāʾ",
+                "0845Maqrizi.IghathaUmma": "Iǧāṯat al-Umma"               
+    }
+
+    exclude_list = ["0845Maqrizi.Durar"]
 
 
     graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
                              cluster_cap = 20, date_summary=None, new_ids_paths = new_ids_paths, 
-                             existing_cluster_tagged=existing_tagged_cluster, tops=topics)
+                             existing_cluster_tagged=existing_tagged_cluster, tops=topics, author_focus = author_focus, label_conv=label_conv,
+                             exclude_book_uri=exclude_list)
+
+    # graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
+    #                          cluster_cap = 20, date_summary=None, new_ids_paths = new_ids_paths, 
+    #                          author_focus = author_focus)
 
 
 

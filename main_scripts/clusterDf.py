@@ -72,8 +72,21 @@ class clusterDf():
         
         return pd.DataFrame(stat_dicts)
 
-    def filter_by_book_list(self, book_list):
-        self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
+    def filter_by_author_list(self, author_list):
+        print("Filtering clusters by authors: {}".format(author_list))
+        author_df = self.cluster_df.copy()
+        author_df["author"] = author_df["book"].str.split(".", expand=True)[0]        
+        self.cluster_df = author_df[author_df["author"].isin(author_list)]
+        self.cluster_df.drop(columns=["author"])
+    
+    def filter_by_book_list(self, book_list, exclude_listed_books=False):
+        """If exclude_listed_books is true - it will return the only rows that do not match the book list"""
+        if exclude_listed_books:
+            print("Filtering clusters to exclude books: {}".format(book_list))
+            self.cluster_df = self.cluster_df[~self.cluster_df["book"].isin(book_list)]
+        else:
+            print("Filtering clusters by books: {}".format(book_list))
+            self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
 
     def to_minified_csv(self, out_path, columns = ["cluster", "id", "seq", "begin", "end", "size"]):
         minified_csv = self.cluster_df[columns]

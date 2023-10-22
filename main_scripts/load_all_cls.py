@@ -42,6 +42,7 @@ def load_all_cls(path, meta_path, min_date=1, max_date = 900, cluster_cap = 500,
                     else:
                         if "text" not in columns:
                             columns.append("text")
+                    
                             
                     if file_type == "json":
                         data = pd.read_json(file_path, lines=True)[columns]

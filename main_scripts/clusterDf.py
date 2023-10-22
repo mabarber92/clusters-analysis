@@ -46,6 +46,11 @@ class clusterDf():
     def fetch_clusters_by_uri(self, uri, uri_field = "book"):
         return self.cluster_df[self.cluster_df[uri_field] == uri]["cluster"].to_list()
     
+    # Use a URI and a ms_list to fetch cluster list
+    def fetch_clusters_by_uri_mslist(self, uri, ms_list, uri_field="book"):
+        filtered = self.cluster_df[self.cluster_df[uri_field] == uri]
+        return filtered[filtered["seq"].isin(ms_list)]["cluster"].to_list()
+
     # Concatenate the uris in a cluster set
     def calculate_reuse_stats(self, uri, uri_field="book", df_in = None):
         cluster_list = self.fetch_clusters_by_uri(uri, uri_field=uri_field)        
@@ -87,6 +92,26 @@ class clusterDf():
         else:
             print("Filtering clusters by books: {}".format(book_list))
             self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
+
+    def return_cluster_df_for_uri_ms(self, primary_book, ms, input_type = "range"):
+        if type(ms) == list and input_type == "range":
+            if len(ms) == 2:
+                ms_list = list(range(ms[0], ms[1]+1))
+                print(ms_list)
+            elif len(ms) == 1:
+                ms_list = ms[:]
+            else:
+                print("Range specified but list is greater than two - for a range supply only start and end ms... treating input ms as list of ms")
+                input_type = "list"
+        elif input_type == "list":
+            ms_list = ms[:]
+        else:
+            ms_list = [ms]
+            
+        clusters = self.fetch_clusters_by_uri_mslist(primary_book, ms_list)
+        return self.cluster_df[self.cluster_df["cluster"].isin(clusters)]
+    
+
 
     def to_minified_csv(self, out_path, columns = ["cluster", "id", "seq", "begin", "end", "size"]):
         minified_csv = self.cluster_df[columns]

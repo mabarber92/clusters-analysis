@@ -1,8 +1,7 @@
-# from clusterDf import clusterDf
+from main_scripts.clusterDf import clusterDf
 import pandas as pd
 import re
 from openiti.helper.funcs import text_cleaner
-## TO DO - CLEAN THE TEXT BEFORE PASSING IT TO LEN WHEN PASSING OVER SPLITS - OR WE'RE GOING TO GET MAPPING ISSUES
 
 def get_tagged_spans(text_path, start_tag, end_tag):
     """Take text path and defined start and end tags extract positions and output as a df, formatted as
@@ -53,6 +52,7 @@ def get_tagged_spans(text_path, start_tag, end_tag):
     ## Return df
     return out_df
 
+def map_clusters_annotation_df(cluster_obj, )
 
 if __name__ == "__main__":
     text_path = "D:/OpenITI Corpus/corpus_2022_2_7/data/0310Tabari/0310Tabari.JamicBayan/0310Tabari.JamicBayan.Shamela0007798-ara1.inProgress"

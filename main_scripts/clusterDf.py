@@ -10,11 +10,16 @@ class clusterDf():
     def count_books(self):
         return len(self.cluster_df[self.cluster_df["series"]].drop_duplicates())
 
-    def count_clusters(self):
-        return len(self.cluster_df[self.cluster_df["cluster"]].drop_duplicates())
-    
+    def count_clusters(self, df_in = None):
+        if df_in is not None:
+            return len(df_in["cluster"].drop_duplicates())
+        else:
+            return len(self.cluster_df["cluster"].drop_duplicates())
+        
     def fetch_max_cluster(self):
-        return self.cluster_df["size"].max()
+        """Return a dataframe containing the largest cluster - WARNING for post processing this is a df containing all of the 
+        rows of the cluster - it will need to be reduced to a single row for any aggregate stats on the cluster"""
+        return self.cluster_df[self.cluster_df["size"] == self.cluster_df["size"].max()]
 
     def fetch_top_reusers(self, uri, uri_field="book", by = "length", exclude_self_reuse = False, dir = "bi", csv_out=None):
         # Set up pre-requisites to be used by other funcs
@@ -77,6 +82,11 @@ class clusterDf():
         
         return pd.DataFrame(stat_dicts)
 
+    # Function to apply a date filter to the df
+    def filter_by_date_range(self, min_date = 0, max_date= 1500):
+        self.cluster_df = self.cluster_df[self.cluster_df["date"].le(max_date)]
+        self.cluster_df = self.cluster_df[self.cluster_df["date"].ge(min_date)]
+
     def filter_by_author_list(self, author_list):
         print("Filtering clusters by authors: {}".format(author_list))
         author_df = self.cluster_df.copy()
@@ -111,6 +121,19 @@ class clusterDf():
         clusters = self.fetch_clusters_by_uri_mslist(primary_book, ms_list)
         return self.cluster_df[self.cluster_df["cluster"].isin(clusters)]
     
+    def print_aggregated_stats(self, greater_than_measure = 100):
+        # Perform calculations
+        cluster_count = self.count_clusters()
+
+        clusters_greater_than = self.cluster_df[self.cluster_df["size"] > greater_than_measure]
+        count_clusters_greater_than = self.count_clusters(df_in = clusters_greater_than)
+
+        largest_cluster = self.fetch_max_cluster().iloc[0]
+
+        # Print results
+        print("Total number of clusters: {}".format(cluster_count))
+        print("Total number of clusters with a size greater than {} : {}".format(greater_than_measure, count_clusters_greater_than))
+        print("Size of largest cluster (cluster {}): {}".format(largest_cluster["cluster"], largest_cluster["size"]))
 
 
     def to_minified_csv(self, out_path, columns = ["cluster", "id", "seq", "begin", "end", "size"]):

@@ -214,44 +214,49 @@ if __name__ == "__main__":
     meta_path = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
     cluster_path = "E:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
     # date_filter_range = [454, 467]
-    in_books = ["0845Maqrizi.IghathaUmma"]
-    author_focus = ["0845Maqrizi"]
-    out_dir = "../data_out_igatha_corrected/"
-    new_ids_paths = [
-        {"new_ids" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clcluster-section-ids.csv",
-         "new_ids_meta" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clsection-ids-meta.csv"
-         }
-    ]
-    existing_tagged_cluster = ["../data_out_igatha_corrected/clusters_tagged/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.dyn-tagged"]
+    in_books = ["0629CabdLatifBaghdadi.IfadaWaIctibar"]
+    # author_focus = ["0845Maqrizi"]
+    out_dir = "../data_out_Baghdadi_Ifada/"
+    # new_ids_paths = [
+    #     {"new_ids" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clcluster-section-ids.csv",
+    #      "new_ids_meta" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clsection-ids-meta.csv"
+    #      }
+    # ]
+    # existing_tagged_cluster = ["../data_out_igatha_corrected/clusters_tagged/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.dyn-tagged"]
 
-    topics = [{"id": "@PREIS@", "colour": "brown", "label" : "Pre-Islamic"},
-          {"id": "@EARIS@", "colour": "yellow", "label" : "Early Islamic"},
-          {"id": "@IKH@", "colour": "orange", "label" : "Iḫšīdid"},
-          {"id": "@FAT@", "colour": "green", "label" : "Fāṭimid"},
-          {"id": "@AYY@", "colour": "red", "label" : "Ayyūbid"},
-          {"id": "@MAM@", "colour": "darkblue", "label" : "Mamlūk"},
-          {"id": "None", "colour": "black", "label" : "No Dynasty"}
-          ]
+    # topics = [{"id": "@PREIS@", "colour": "brown", "label" : "Pre-Islamic"},
+    #       {"id": "@EARIS@", "colour": "yellow", "label" : "Early Islamic"},
+    #       {"id": "@IKH@", "colour": "orange", "label" : "Iḫšīdid"},
+    #       {"id": "@FAT@", "colour": "green", "label" : "Fāṭimid"},
+    #       {"id": "@AYY@", "colour": "red", "label" : "Ayyūbid"},
+    #       {"id": "@MAM@", "colour": "darkblue", "label" : "Mamlūk"},
+    #       {"id": "None", "colour": "black", "label" : "No Dynasty"}
+    #       ]
 
-    label_conv ={"0845Maqrizi.ShudhurCuqud" : "Shudhūr al-ʿUqūd", 
-                "0845Maqrizi.NuqudQadima": "al-Nuqūd al-Qadīma",
-                "0845Maqrizi.Muqaffa": "al-Muqaffā al-Kabīr",
-                "0845Maqrizi.Mawaciz": "al-Ḫiṭaṭ",
-                "0845Maqrizi.ItticazHunafa": "Ittiʿāẓ al-Ḥunafāʾ",
-                "0845Maqrizi.IghathaUmma": "Iǧāṯat al-Umma"               
-    }
+    # label_conv ={"0845Maqrizi.ShudhurCuqud" : "Shudhūr al-ʿUqūd", 
+    #             "0845Maqrizi.NuqudQadima": "al-Nuqūd al-Qadīma",
+    #             "0845Maqrizi.Muqaffa": "al-Muqaffā al-Kabīr",
+    #             "0845Maqrizi.Mawaciz": "al-Ḫiṭaṭ",
+    #             "0845Maqrizi.ItticazHunafa": "Ittiʿāẓ al-Ḥunafāʾ",
+    #             "0845Maqrizi.IghathaUmma": "Iǧāṯat al-Umma"               
+    # }
 
-    exclude_list = ["0845Maqrizi.Durar"]
+    # exclude_list = ["0845Maqrizi.Durar"]
 
 
-    graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
-                             cluster_cap = 20, date_summary=None, new_ids_paths = new_ids_paths, 
-                             existing_cluster_tagged=existing_tagged_cluster, tops=topics, author_focus = author_focus, label_conv=label_conv,
-                             exclude_book_uri=exclude_list)
+    # graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
+    #                          cluster_cap = 20, date_summary=None, new_ids_paths = new_ids_paths, 
+    #                          existing_cluster_tagged=existing_tagged_cluster, tops=topics, author_focus = author_focus, label_conv=label_conv,
+    #                          exclude_book_uri=exclude_list)
 
     # graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
     #                          cluster_cap = 20, date_summary=None, new_ids_paths = new_ids_paths, 
     #                          author_focus = author_focus)
+
+    graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
+                             date_summary='first')
+
+    
 
 
 

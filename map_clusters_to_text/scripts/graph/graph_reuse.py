@@ -128,6 +128,7 @@ if __name__ == "__main__":
          "0845Maqrizi.Mawaciz": "Ḫiṭaṭ",
          "0845Maqrizi.Rasail": "Rasāʾil",
          "0845Maqrizi.ShudhurCuqud": "Šuḏūr al-ʿUqūd",
-         "0845Maqrizi.NuqudQadima" : "al-Nuqūd al-Qadīma"}
+         "0845Maqrizi.NuqudQadima" : "al-Nuqūd al-Qadīma",
+         "0845Maqrizi.Muqaffa": "al-Muqaffā al-Kabīr"}
 
     plot_reuse(reuse_map, graph_dir, maintext='Iǧāṯat al-Umma', section_map=section_map, top_colours = topics, label_conv=labels )

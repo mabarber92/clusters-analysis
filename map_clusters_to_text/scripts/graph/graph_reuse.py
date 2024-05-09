@@ -106,4 +106,28 @@ def plot_reuse(reuse_map, out, maintext, section_map = None, top_colours = None,
     plt.savefig(out, dpi=300, bbox_inches = "tight")
     
     plt.show
-    
+
+if __name__ == "__main__":
+
+    reuse_map = "C:/Users/mathe/Documents/Github-repos/clusters-analysis/map_clusters_to_text/data_out_igatha_corrected/reuse_maps/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.cl-tagged-reuse.csv"
+    section_map = "C:/Users/mathe/Documents/Github-repos/clusters-analysis/map_clusters_to_text/data_out_igatha_corrected/reuse_maps/0845Maqrizi.IghathaUmma.Kraken210223142017-ara1.cl-tagged-section.csv"
+    graph_dir = "C:/Users/mathe/Documents/Github-repos/clusters-analysis/map_clusters_to_text/data_out_igatha_corrected/graphs/Iǧāṯat al-Umma-reuse-graph.jpeg"
+
+    topics = [{"id": "@PREIS@", "colour": "brown", "label" : "Pre-Islamic"},
+          {"id": "@EARIS@", "colour": "yellow", "label" : "Early Islamic"},
+          {"id": "@IKH@", "colour": "orange", "label" : "Iḫšīdid"},
+          {"id": "@FAT@", "colour": "green", "label" : "Fāṭimid"},
+          {"id": "@AYY@", "colour": "red", "label" : "Ayyūbid"},
+          {"id": "@MAM@", "colour": "darkblue", "label" : "Mamlūk"},
+          {"id": "None", "colour": "black", "label" : "No Dynasty"}
+          ]
+
+
+
+    labels ={"0845Maqrizi.ItticazHunafa": "Ittiʿāẓ al-Ḥunafāʾ",
+         "0845Maqrizi.Mawaciz": "Ḫiṭaṭ",
+         "0845Maqrizi.Rasail": "Rasāʾil",
+         "0845Maqrizi.ShudhurCuqud": "Šuḏūr al-ʿUqūd",
+         "0845Maqrizi.NuqudQadima" : "al-Nuqūd al-Qadīma"}
+
+    plot_reuse(reuse_map, graph_dir, maintext='Iǧāṯat al-Umma', section_map=section_map, top_colours = topics, label_conv=labels )

@@ -1,4 +1,4 @@
-from main_scripts.load_all_cls import load_all_cls
+from load_all_cls import load_all_cls
 import pandas as pd
 import re
 import os
@@ -103,22 +103,26 @@ class clusterDf():
             print("Filtering clusters by books: {}".format(book_list))
             self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
 
-    def return_cluster_df_for_uri_ms(self, primary_book, ms, input_type = "range"):
-        if type(ms) == list and input_type == "range":
-            if len(ms) == 2:
-                ms_list = list(range(ms[0], ms[1]+1))
-                print(ms_list)
-            elif len(ms) == 1:
+    def return_cluster_df_for_uri_ms(self, primary_book, ms = None, input_type = "range"):
+        # None type allows this function to be used to fetch all of the clusters for an entire text (rather than specified milestones)
+        if ms == None:
+            clusters = self.fetch_clusters_by_uri(primary_book)
+        else:
+            if type(ms) == list and input_type == "range":
+                if len(ms) == 2:
+                    ms_list = list(range(ms[0], ms[1]+1))
+                    print(ms_list)
+                elif len(ms) == 1:
+                    ms_list = ms[:]
+                else:
+                    print("Range specified but list is greater than two - for a range supply only start and end ms... treating input ms as list of ms")
+                    input_type = "list"
+            elif input_type == "list":
                 ms_list = ms[:]
             else:
-                print("Range specified but list is greater than two - for a range supply only start and end ms... treating input ms as list of ms")
-                input_type = "list"
-        elif input_type == "list":
-            ms_list = ms[:]
-        else:
-            ms_list = [ms]
-            
-        clusters = self.fetch_clusters_by_uri_mslist(primary_book, ms_list)
+                ms_list = [ms]
+                
+            clusters = self.fetch_clusters_by_uri_mslist(primary_book, ms_list)
         return self.cluster_df[self.cluster_df["cluster"].isin(clusters)]
     
     def print_aggregated_stats(self, greater_than_measure = 100):

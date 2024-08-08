@@ -286,6 +286,7 @@ def earliest_sources_nested_clusters(cluster_path, meta_path, book):
 
     # Get a df for only clusters related to the primary book
     cluster_df = cluster_obj.return_cluster_df_for_uri_ms(book)
+    
 
     # Pass a df with only the main book for the nesting
     leveled_df = level_nested_clusters(cluster_df[cluster_df["book"] == book])
@@ -304,8 +305,8 @@ def earliest_sources_nested_clusters(cluster_path, meta_path, book):
     
 
 if __name__ == "__main__":
-    cluster_path = "D:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
-    meta_path = "D:/Corpus Stats/2023/OpenITI_metadata_2022-2-7_merged.csv"
+    cluster_path = "D:/Corpus Stats/2023/v8-clusters/minified_clusters_pre-1000AH_under500_2.csv"
+    meta_path = "D:/Corpus Stats/2023/OpenITI_metadata_2023-1-8.csv"
     book = "0845Maqrizi.Mawaciz"
 
 

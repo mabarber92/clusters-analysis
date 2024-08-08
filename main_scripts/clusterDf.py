@@ -6,7 +6,24 @@ import os
 class clusterDf():
     def __init__ (self, cluster_path, meta_path, min_date=0, max_date = 1500, cluster_cap = 500, drop_strings = True, columns = ["uid", "gid", "cluster", "size", "seq", "series", "text", "begin", "end"]):
         self.cluster_df = load_all_cls(cluster_path, meta_path, drop_strings=drop_strings, columns = columns, drop_dates=False, max_date = max_date, min_date=min_date, cluster_cap = cluster_cap)
-    
+        self.cluster_df = self.clean_single_clusters(self.cluster_df)
+        self.print_aggregated_stats()
+        
+
+    def clean_single_clusters(self, cl_df):
+        """Filtering steps leave lone clusters - e.g. cluster of size 2 with a text from 845 and post 845
+          filtered by date 845 will be left with only one item in the cluster. This creates problems downstream
+          All filtering processes need to be passed to this function"""
+        print("Cleaning up the single clusters")
+        return cl_df.groupby("cluster").filter(lambda x: len(x) > 1)
+        # new_cl_df = pd.DataFrame()
+        # cluster_list = cl_df["cluster"].drop_duplicates().to_list()
+        # for cluster in tqdm(cluster_list):
+        #     filtered_df = cl_df[cl_df["cluster"] == cluster]
+        #     if len(filtered_df) > 1:
+        #         new_cl_df = pd.concat([new_cl_df, filtered_df])
+        # return new_cl_df
+
     def count_books(self):
         return len(self.cluster_df[self.cluster_df["series"]].drop_duplicates())
 
@@ -86,12 +103,14 @@ class clusterDf():
     def filter_by_date_range(self, min_date = 0, max_date= 1500):
         self.cluster_df = self.cluster_df[self.cluster_df["date"].le(max_date)]
         self.cluster_df = self.cluster_df[self.cluster_df["date"].ge(min_date)]
+        self.cluster_df = self.clean_single_clusters(self.cluster_df)
 
     def filter_by_author_list(self, author_list):
         print("Filtering clusters by authors: {}".format(author_list))
         author_df = self.cluster_df.copy()
         author_df["author"] = author_df["book"].str.split(".", expand=True)[0]        
         self.cluster_df = author_df[author_df["author"].isin(author_list)]
+        self.cluster_df = self.clean_single_clusters(self.cluster_df)
         self.cluster_df.drop(columns=["author"])
     
     def filter_by_book_list(self, book_list, exclude_listed_books=False):
@@ -102,6 +121,7 @@ class clusterDf():
         else:
             print("Filtering clusters by books: {}".format(book_list))
             self.cluster_df = self.cluster_df[self.cluster_df["book"].isin(book_list)]
+        self.cluster_df = self.clean_single_clusters(self.cluster_df)
 
     def return_cluster_df_for_uri_ms(self, primary_book, ms = None, input_type = "range"):
         # None type allows this function to be used to fetch all of the clusters for an entire text (rather than specified milestones)
@@ -146,8 +166,8 @@ class clusterDf():
 
 if __name__ == "__main__":
     print(os.getcwd())
-    clusters = "D:/Corpus Stats/2023/v7-clusters/out.json"
-    meta = "D:/Corpus Stats/2023/OpenITI_metadata_2022-2-7_merged.csv"
-    out_csv = "D:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
-    cluster_df_obj = clusterDf(clusters, meta, max_date = 1000, cluster_cap=500)
+    clusters = "D:/Corpus Stats/2023/v8-clusters/out.parquet"
+    meta = "D:/Corpus Stats/2023/OpenITI_metadata_2023-1-8.csv"
+    out_csv = "D:/Corpus Stats/2023/v8-clusters/minified_clusters_pre-1000AH_under500_2.csv"
+    cluster_df_obj = clusterDf(clusters, meta, max_date = 1000, cluster_cap=500)    
     cluster_df_obj.to_minified_csv(out_csv)

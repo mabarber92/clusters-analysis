@@ -1,4 +1,4 @@
-from load_all_cls import load_all_cls
+from main_scripts.load_all_cls import load_all_cls
 import pandas as pd
 import re
 import os
@@ -168,6 +168,6 @@ if __name__ == "__main__":
     print(os.getcwd())
     clusters = "D:/Corpus Stats/2023/v8-clusters/out.parquet"
     meta = "D:/Corpus Stats/2023/OpenITI_metadata_2023-1-8.csv"
-    out_csv = "D:/Corpus Stats/2023/v8-clusters/minified_clusters_pre-1000AH_under500_2.csv"
-    cluster_df_obj = clusterDf(clusters, meta, max_date = 1000, cluster_cap=500)    
-    cluster_df_obj.to_minified_csv(out_csv)
+#     out_csv = "D:/Corpus Stats/2023/v8-clusters/minified_clusters_pre-1000AH_under500_2.csv"
+#     cluster_df_obj = clusterDf(clusters, meta, max_date = 1000, cluster_cap=500)    
+#     cluster_df_obj.to_minified_csv(out_csv)

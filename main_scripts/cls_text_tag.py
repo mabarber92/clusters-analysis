@@ -110,7 +110,7 @@ def tag_ms(all_cls, cluster_data_subset, clusters_for_text_df, no_clusters, ms_s
 
 def tag_clusters(tagged_texts, out_dest, cls_df, eval_cols=None, no_cl_csv = "no_cluster_list.csv", tags = None,
                         safe_tags = "###\s\|+\s|\n#\s|###\s\|+\s|PageV\d+P\d+|~~|\n|@YY\d{3}", add_tags = [], text_dir_type = 'folder', 
-                        overwrite = False, write_only_tags = False):
+                        overwrite = False, write_only_tags = False, ms_range = None):
     """
     tagged_texts can be passed to the function in two ways - the default text_dir_type 'folder' parses one folder containing a set of texts
     'file_list' takes a list of text files (given as absolute paths) and loops directly through them
@@ -129,6 +129,14 @@ def tag_clusters(tagged_texts, out_dest, cls_df, eval_cols=None, no_cl_csv = "no
     # all_cls = pd.merge(all_cls, meta_df, how = "inner", on ="id")
     
 
+    if ms_range is not None and type(ms_range) == list:
+        if len(ms_range) == 2:
+            ms_filter_list = list(range(ms_range[0], ms_range[1] + 1))
+            ms_range = True
+        else:
+            ms_range = False
+    else:
+        ms_range = False
     
     # If a folder is passed in (the default) loop through it and create a list of absolute paths
     if text_dir_type == "folder":
@@ -190,6 +198,16 @@ def tag_clusters(tagged_texts, out_dest, cls_df, eval_cols=None, no_cl_csv = "no
                 final_text = text[:]
                 result_count = 0
                 for idx, ms_section in enumerate(tqdm(text)):
+                    
+                    if ms_range:
+                        if re.search(r"ms\d+", ms_section) is None:
+                            try:
+                                ms_int = int(text[idx+1].lstrip("ms"))
+                                if ms_int not in ms_filter_list:
+                                    continue
+                            except IndexError:
+                                continue
+                        
                     # If we are only interacting with milestones with a reserve tag - do so
                     if tags is not None:
                         for tag in tags:

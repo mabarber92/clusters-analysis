@@ -21,7 +21,7 @@ def return_corpus_paths_for_books(meta_path, openiti_corpus_base, book_list):
     return path_list
 
 def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_dir, existing_cluster_tagged = [], pairs_focus=None, author_focus=None, max_reuse_date=None, min_reuse_date=0, 
-                             cluster_cap = 100, date_section_range = [], date_cats=[], date_summary='first', tops=None, new_ids_paths =[], label_conv=None, exclude_book_uri = None):
+                             cluster_cap = 100, date_section_range = [], date_cats=[], date_summary='first', tops=None, new_ids_paths =[], label_conv=None, exclude_book_uri = None, ms_range = None):
     """in_books gives a list of book_uris to be used as the main texts for the graphs - a graph and intermediary files 
     will be produced for each
     pairs_focus gives a list of book_uris - only these uris will be used for the analysis - clusters that
@@ -132,14 +132,14 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
         # Then tag clusters
         print("Tagging clusters")
         if use_cluster_tagger:
-            tag_clusters(input_dir, tagged_cluster_dir, cluster_df, text_dir_type = 'folder', overwrite = True, write_only_tags=True)
+            tag_clusters(input_dir, tagged_cluster_dir, cluster_df, text_dir_type = 'folder', overwrite = True, write_only_tags=True, ms_range = ms_range)
         
     else:
         print("Skipping dates tagging..")
         print("Tagging clusters")
         add_dates = False
         if use_cluster_tagger:
-            tag_clusters(in_paths, tagged_cluster_dir, cluster_df, text_dir_type = 'file_list', overwrite = True, write_only_tags=True)
+            tag_clusters(in_paths, tagged_cluster_dir, cluster_df, text_dir_type = 'file_list', overwrite = True, write_only_tags=True, ms_range = ms_range)
     
     
     
@@ -157,7 +157,7 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
 
     
     print("Creating reuse map")
-    multi_reuse_map_corpus(cluster_df, tagged_cluster_dir, maps_out_dir, section_map = True, date_summary=date_summary, date_cats = date_cats, tops=topic_tags)
+    multi_reuse_map_corpus(cluster_df, tagged_cluster_dir, maps_out_dir, section_map = True, date_summary=date_summary, date_cats = date_cats, tops=topic_tags, ms_range=ms_range)
 
     #If we have a date filter - make a new folder containing filtered map - change the input dir
     print(date_section_range)
@@ -189,6 +189,7 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
         maps_out_dir = date_filtered_path
     
 
+
     # Graph the reuse maps
     print("Creating graphs")
     graph_dir = os.path.join(out_dir, "graphs")
@@ -210,13 +211,14 @@ def graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, clu
 
 
 if __name__ == "__main__":
-    corpus_base_path = "E:/OpenITI Corpus/corpus_2022_2_7/"
-    meta_path = "E:/Corpus Stats/2023/OpenITI_metadata_2022-2-7.csv"
-    cluster_path = "E:/Corpus Stats/2023/v7-clusters/minified_clusters_pre-1000AH_under500.csv"
+    corpus_base_path = "D:/OpenITI Corpus/corpus_2023_1_8/"
+    meta_path = "D:/Corpus Stats/2023/OpenITI_metadata_2023-1-8.csv"
+    cluster_path = "D:/Corpus Stats/2023/v8-clusters/minified_clusters_pre-1000AH_under500_2.csv"
     # date_filter_range = [454, 467]
-    in_books = ["0629CabdLatifBaghdadi.IfadaWaIctibar"]
+    in_books = ["0845Maqrizi.Mawaciz"]
     # author_focus = ["0845Maqrizi"]
-    out_dir = "../data_out_Baghdadi_Ifada/"
+    out_dir = "../data_out_Mawaciz_Nile_113_139/"
+    ms_range = [113, 139]
     # new_ids_paths = [
     #     {"new_ids" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clcluster-section-ids.csv",
     #      "new_ids_meta" : "../../create_md_uris/maqrizi.rasail_sections/0845Maqrizi.Rasail.clsection-ids-meta.csv"
@@ -254,7 +256,7 @@ if __name__ == "__main__":
     #                          author_focus = author_focus)
 
     graph_for_dated_sections(in_books, out_dir, corpus_base_path, meta_path, cluster_path,  max_reuse_date=1000, 
-                             date_summary='first')
+                             date_summary = None, ms_range = ms_range)
 
     
 

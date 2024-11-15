@@ -14,7 +14,7 @@ import os
 import pandas as pd
 from reuse.pattern_mapping_cat import pattern_map_dates
 
-def multi_reuse_map(all_cls, tagged_text_path, dir_out, reused_texts = [], section_map = False, date_summary=None, tops = None, date_cats = [], other_map = False):
+def multi_reuse_map(all_cls, tagged_text_path, dir_out, reused_texts = [], section_map = False, date_summary=None, tops = None, date_cats = [], other_map = False, ms_range=None):
     """For reused texts supply just 0000author.book URIs - the selection of all_cls will
     determine which version is used"""
     # Get filename
@@ -94,11 +94,17 @@ def multi_reuse_map(all_cls, tagged_text_path, dir_out, reused_texts = [], secti
         print("Creating section map")
         # Add code here for section map - output to the same directory
         section_df = pattern_map_dates(tagged_text, char_counts = True, tops = tops, date_summary=date_summary, date_cats = date_cats)
+        if ms_range is not None:
+            max_extent = reuse_out["ch_end_tar"].max()
+            min_extent = reuse_out["ch_start_tar"].min() - 300
+            section_df = section_df[section_df["st_pos"] >= min_extent]
+            section_df = section_df[section_df["st_pos"] <= max_extent]
+
         section_out_path = dir_out + "/" + text_name + "-section.csv"   
         section_df.to_csv(section_out_path)
         
-def multi_reuse_map_corpus(all_cls, tagged_text_dir, dir_out, reused_texts = [], section_map = False, date_summary=None, tops = None, date_cats = [], other_map = True):
+def multi_reuse_map_corpus(all_cls, tagged_text_dir, dir_out, reused_texts = [], section_map = False, date_summary=None, tops = None, date_cats = [], other_map = True, ms_range = None):
     for root, dirs, files in os.walk(tagged_text_dir):
         for name in files:
             text_path = os.path.join(root, name)            
-            multi_reuse_map(all_cls, text_path, dir_out, reused_texts = reused_texts, section_map = section_map, date_summary=date_summary, tops = tops, date_cats = date_cats, other_map = other_map)
+            multi_reuse_map(all_cls, text_path, dir_out, reused_texts = reused_texts, section_map = section_map, date_summary=date_summary, tops = tops, date_cats = date_cats, other_map = other_map, ms_range = ms_range)
